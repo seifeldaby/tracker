@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Seif Fitness Logger</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0D0D0D;
+  --surface:  #161616;
+  --surface2: #1F1F1F;
+  --border:   #2A2A2A;
+  --gold:     #C9A84C;
+  --gold-dim: rgba(201,168,76,0.12);
+  --burg:     #8B1A2B;
+  --burg-dim: rgba(139,26,43,0.12);
+  --text:     #F0EDE6;
+  --muted:    #7A776F;
+  --green:    #2E7D52;
+  --green-bg: rgba(46,125,82,0.12);
+  --radius:   16px;
+  --radius-sm:10px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding-bottom:100px;
+  max-width:480px;
+  margin:0 auto;
+}
+
+/* ── Hero ── */
+.hero{
+  padding:24px 20px 20px;
+  background:linear-gradient(160deg,#1A1408 0%,#0D0D0D 60%);
+  border-bottom:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;
+  top:-60px;right:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(201,168,76,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-date{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:0.5px}
+.hero-greeting{font-size:26px;font-weight:900;line-height:1.2;margin:6px 0 4px}
+.hero-greeting span{color:var(--gold)}
+.hero-sub{font-size:13px;color:var(--muted)}
+.hero-goal{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:14px;
+  background:var(--gold-dim);
+  border:1px solid rgba(201,168,76,0.2);
+  border-radius:20px;
+  padding:5px 12px;
+  font-size:12px;color:var(--gold);font-weight:700;
+}
+
+/* ── Section card ── */
+.section{
+  margin:12px 16px 0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+.section.active{border-color:rgba(201,168,76,0.3)}
+
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  cursor:pointer;
+  user-select:none;
+}
+.section-header-left{display:flex;align-items:center;gap:10px}
+.section-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+.section-title{font-size:15px;font-weight:700}
+.section-subtitle{font-size:12px;color:var(--muted);margin-top:1px}
+.section-badge{
+  font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:20px;
+  background:var(--gold-dim);color:var(--gold);
+  display:none;
+}
+.section-badge.show{display:block}
+.chevron{
+  color:var(--muted);font-size:18px;
+  transition:transform 0.25s;
+}
+.section.open .chevron{transform:rotate(180deg)}
+
+.section-body{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.35s cubic-bezier(.4,0,.2,1);
+}
+.section.open .section-body{max-height:600px}
+.section-inner{padding:0 16px 16px}
+
+/* ── Workout type chips ── */
+.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.chip{
+  padding:10px 8px;border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  font-family:'Tajawal',sans-serif;
+  font-size:13px;font-weight:500;
+  cursor:pointer;text-align:center;
+  transition:all 0.15s;
+  line-height:1.3;
+}
+.chip:active{transform:scale(0.97)}
+.chip.selected{
+  border-color:var(--gold);
+  background:var(--gold-dim);
+  color:var(--gold);
+  font-weight:700;
+}
+.chip-icon{display:block;font-size:20px;margin-bottom:4px}
+
+/* ── Attendance buttons ── */
+.attend-row{display:flex;gap:8px;margin-bottom:12px}
+.attend-btn{
+  flex:1;padding:10px;border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  font-family:'Tajawal',sans-serif;
+  font-size:13px;font-weight:700;
+  cursor:pointer;text-align:center;
+  transition:all 0.15s;
+}
+.attend-btn.sel-done{border-color:#2E7D52;background:var(--green-bg);color:#4CAF82}
+.attend-btn.sel-miss{border-color:var(--burg);background:var(--burg-dim);color:#D9596A}
+.attend-btn.sel-rest{border-color:#555;background:rgba(85,85,85,0.15);color:#888}
+.attend-btn.sel-swim{border-color:#1565C0;background:rgba(21,101,192,0.12);color:#64B5F6}
+
+/* ── Duration stepper ── */
+.stepper{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:6px 6px;
+}
+.stepper-btn{
+  width:38px;height:38px;border-radius:8px;
+  border:none;background:var(--border);
+  color:var(--text);font-size:20px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+  font-family:'Tajawal',sans-serif;
+}
+.stepper-btn:active{background:#333}
+.stepper-val{font-size:24px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+.stepper-unit{font-size:12px;color:var(--muted);margin-top:2px;text-align:center}
+
+/* ── Meal toggles ── */
+.meal-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.meal-toggle{
+  padding:10px 4px;border-radius:10px;
+  border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--muted);font-family:'Tajawal',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;
+  text-align:center;transition:all 0.15s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.meal-toggle .m-icon{font-size:20px}
+.meal-toggle.on{border-color:#2E7D52;background:var(--green-bg);color:#4CAF82}
+.meal-toggle:active{transform:scale(0.95)}
+.meal-check{font-size:14px;font-weight:900}
+
+/* ── Water stepper ── */
+.water-bar{display:flex;gap:5px;margin:8px 0}
+.water-drop{
+  flex:1;height:32px;border-radius:6px;
+  background:var(--surface2);border:1px solid var(--border);
+  cursor:pointer;transition:all 0.15s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+}
+.water-drop.filled{background:rgba(21,101,192,0.3);border-color:#1565C0}
+.water-label{font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+
+/* ── Sleep stepper ── */
+.sleep-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sleep-chip{
+  padding:7px 12px;border-radius:8px;
+  border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--muted);font-family:'Tajawal',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;
+}
+.sleep-chip.on{border-color:var(--gold);background:var(--gold-dim);color:var(--gold)}
+
+/* ── Weight input ── */
+.weight-input-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:8px 12px;
+}
+.weight-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'Tajawal',sans-serif;font-size:28px;font-weight:900;
+  color:var(--gold);text-align:center;
+  font-variant-numeric:tabular-nums;
+  width:100%;
+}
+.weight-input::placeholder{color:var(--muted);font-size:22px}
+.weight-unit{font-size:16px;color:var(--muted);font-weight:700;white-space:nowrap}
+
+/* ── Note input ── */
+.note-input{
+  width:100%;padding:10px 12px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  font-family:'Tajawal',sans-serif;font-size:13px;
+  outline:none;resize:none;
+  transition:border-color 0.15s;
+}
+.note-input:focus{border-color:rgba(201,168,76,0.4)}
+.note-input::placeholder{color:var(--muted)}
+
+/* ── Field label ── */
+.field-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;letter-spacing:0.3px}
+
+/* ── Sticky submit ── */
+.submit-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  padding:12px 16px 20px;
+  background:linear-gradient(to top,#0D0D0D 70%,transparent);
+}
+.submit-btn{
+  width:100%;padding:16px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#C9A84C 0%,#A0832A 100%);
+  color:#0D0D0D;font-family:'Tajawal',sans-serif;
+  font-size:17px;font-weight:900;cursor:pointer;
+  letter-spacing:0.3px;
+  box-shadow:0 4px 20px rgba(201,168,76,0.3);
+  transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.submit-btn:active{transform:scale(0.98);box-shadow:0 2px 10px rgba(201,168,76,0.2)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ── Success overlay ── */
+.success-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.9);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;opacity:0;pointer-events:none;transition:opacity 0.3s;
+  max-width:480px;left:50%;transform:translateX(-50%);
+}
+.success-overlay.show{opacity:1;pointer-events:all}
+.success-icon{font-size:72px;margin-bottom:16px;animation:pop 0.4s cubic-bezier(.34,1.56,.64,1)}
+.success-title{font-size:28px;font-weight:900;color:var(--gold);margin-bottom:8px}
+.success-sub{font-size:15px;color:var(--muted);text-align:center;line-height:1.5}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ── Loading spinner ── */
+.spinner{
+  width:20px;height:20px;border-radius:50%;
+  border:2.5px solid rgba(0,0,0,0.3);
+  border-top-color:#0D0D0D;
+  animation:spin 0.6s linear infinite;
+  display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:12px 0}
+
+/* ── Config modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  z-index:200;display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity 0.25s;
+  max-width:480px;left:50%;transform:translateX(-50%);
+}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{
+  width:100%;background:var(--surface);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px 40px;
+  transform:translateY(100%);
+  transition:transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-title{font-size:17px;font-weight:900;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.modal-input{
+  width:100%;padding:12px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  font-family:'Tajawal',sans-serif;font-size:13px;
+  outline:none;margin-bottom:10px;
+  transition:border-color 0.15s;
+  direction:ltr;
+}
+.modal-input:focus{border-color:rgba(201,168,76,0.4)}
+.modal-save{
+  width:100%;padding:13px;border:none;border-radius:12px;
+  background:var(--gold);color:#0D0D0D;
+  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;
+  cursor:pointer;margin-top:4px;
+}
+.modal-hint{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.modal-hint a{color:var(--gold);text-decoration:none}
+
+/* ── Settings icon ── */
+.settings-btn{
+  position:absolute;top:24px;left:20px;
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── Error toast ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  background:#8B1A2B;color:#fff;
+  padding:10px 20px;border-radius:10px;
+  font-size:13px;font-weight:600;
+  z-index:300;opacity:0;pointer-events:none;
+  transition:opacity 0.2s;white-space:nowrap;
+}
+.toast.show{opacity:1}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Settings button -->
+<button class="settings-btn" onclick="openSettings()" title="إعدادات">⚙️</button>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-date" id="hero-date"></div>
+  <div class="hero-greeting">يلا يا <span>سيف،</span><br>سجّل يومك 💪</div>
+  <div class="hero-sub">اختار اللي حصل النهارده بس</div>
+  <div class="hero-goal">🎯 الهدف: 130 → 80 كجم</div>
+</div>
+
+<!-- ── SECTION 1: الجيم ── -->
+<div class="section" id="sec-gym">
+  <div class="section-header" onclick="toggleSection('sec-gym')">
+    <div class="section-header-left">
+      <div class="section-icon">🏋️</div>
+      <div>
+        <div class="section-title">التمرين</div>
+        <div class="section-subtitle">الجيم — الحضور والتفاصيل</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="section-badge" id="badge-gym"></span>
+      <span class="chevron">⌄</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="section-inner">
+
+      <div class="field-label">الحضور</div>
+      <div class="attend-row">
+        <button class="attend-btn" id="att-done" onclick="setAttend('done')">✅ حضرت</button>
+        <button class="attend-btn" id="att-swim" onclick="setAttend('swim')">🏊 سباحة</button>
+        <button class="attend-btn" id="att-rest" onclick="setAttend('rest')">😴 راحة</button>
+        <button class="attend-btn" id="att-miss" onclick="setAttend('miss')">❌ غبت</button>
+      </div>
+
+      <div id="gym-details" style="display:none">
+        <div class="divider"></div>
+        <div class="field-label">نوع التمرين</div>
+        <div class="chip-grid">
+          <div class="chip" onclick="selectWorkout(this,'صدر + ترايسبس')"><span class="chip-icon">💪</span>صدر + ترايسبس</div>
+          <div class="chip" onclick="selectWorkout(this,'ظهر + بايسبس')"><span class="chip-icon">🔙</span>ظهر + بايسبس</div>
+          <div class="chip" onclick="selectWorkout(this,'أرجل')"><span class="chip-icon">🦵</span>أرجل</div>
+          <div class="chip" onclick="selectWorkout(this,'أكتاف + رقبة')"><span class="chip-icon">🏔️</span>أكتاف + رقبة</div>
+          <div class="chip" onclick="selectWorkout(this,'صدر + ظهر (خفيف)')"><span class="chip-icon">🔄</span>صدر + ظهر</div>
+          <div class="chip" onclick="selectWorkout(this,'كور + كارديو')"><span class="chip-icon">🔥</span>كور + كارديو</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="field-label">مدة التمرين</div>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="changeDuration(-5)">−</button>
+          <div style="text-align:center">
+            <div class="stepper-val" id="duration-val">90</div>
+            <div class="stepper-unit">دقيقة</div>
+          </div>
+          <button class="stepper-btn" onclick="changeDuration(+5)">+</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="field-label">ملاحظة (اختياري)</div>
+        <textarea class="note-input" id="gym-note" rows="2" placeholder="أي حاجة مهمة عن التمرين..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 2: الأكل ── -->
+<div class="section" id="sec-food">
+  <div class="section-header" onclick="toggleSection('sec-food')">
+    <div class="section-header-left">
+      <div class="section-icon">🥗</div>
+      <div>
+        <div class="section-title">الأكل</div>
+        <div class="section-subtitle">الوجبات اللي اكلتها</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="section-badge" id="badge-food"></span>
+      <span class="chevron">⌄</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="section-inner">
+      <div class="field-label">اضغط على الوجبة لو اكلتها صح</div>
+      <div class="meal-grid">
+        <div class="meal-toggle" id="m-breakfast" onclick="toggleMeal('m-breakfast')">
+          <span class="m-icon">🍳</span>
+          <span>الإفطار</span>
+          <span class="meal-check" id="mc-breakfast">○</span>
+        </div>
+        <div class="meal-toggle" id="m-snack1" onclick="toggleMeal('m-snack1')">
+          <span class="m-icon">🥜</span>
+          <span>سناك صبح</span>
+          <span class="meal-check" id="mc-snack1">○</span>
+        </div>
+        <div class="meal-toggle" id="m-lunch" onclick="toggleMeal('m-lunch')">
+          <span class="m-icon">🍗</span>
+          <span>الغداء</span>
+          <span class="meal-check" id="mc-lunch">○</span>
+        </div>
+        <div class="meal-toggle" id="m-pre" onclick="toggleMeal('m-pre')">
+          <span class="m-icon">⚡</span>
+          <span>قبل تمرين</span>
+          <span class="meal-check" id="mc-pre">○</span>
+        </div>
+        <div class="meal-toggle" id="m-post" onclick="toggleMeal('m-post')">
+          <span class="m-icon">🥤</span>
+          <span>بعد تمرين</span>
+          <span class="meal-check" id="mc-post">○</span>
+        </div>
+        <div class="meal-toggle" id="m-dinner" onclick="toggleMeal('m-dinner')">
+          <span class="m-icon">🥗</span>
+          <span>العشاء</span>
+          <span class="meal-check" id="mc-dinner">○</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 3: المياه والنوم ── -->
+<div class="section" id="sec-vitals">
+  <div class="section-header" onclick="toggleSection('sec-vitals')">
+    <div class="section-header-left">
+      <div class="section-icon">💧</div>
+      <div>
+        <div class="section-title">المياه والنوم</div>
+        <div class="section-subtitle">هدف: 3 لتر + 7 ساعات</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="section-badge" id="badge-vitals"></span>
+      <span class="chevron">⌄</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="section-inner">
+      <div class="field-label">المياه</div>
+      <div class="water-bar" id="water-bar"></div>
+      <div class="water-label" id="water-label">اضغط على الكوبايات — كل كوبة = 0.5 لتر</div>
+
+      <div class="divider"></div>
+      <div class="field-label">النوم</div>
+      <div class="sleep-row" id="sleep-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 4: الوزن ── -->
+<div class="section" id="sec-weight">
+  <div class="section-header" onclick="toggleSection('sec-weight')">
+    <div class="section-header-left">
+      <div class="section-icon">⚖️</div>
+      <div>
+        <div class="section-title">الوزن</div>
+        <div class="section-subtitle">اختياري — أسبوعي بس</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="section-badge" id="badge-weight"></span>
+      <span class="chevron">⌄</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="section-inner">
+      <div class="field-label">وزنك النهارده (كجم)</div>
+      <div class="weight-input-wrap">
+        <input type="number" class="weight-input" id="weight-input"
+          placeholder="130.0" step="0.1" min="50" max="250"
+          oninput="onWeightInput()">
+        <span class="weight-unit">كجم</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">
+        اتوزن صبحاً على الصحيان قبل الأكل للنتيجة الصح
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sticky submit ── -->
+<div class="submit-bar">
+  <button class="submit-btn" id="submit-btn" onclick="submitData()">
+    <span id="btn-text">سجّل اليوم</span>
+    <div class="spinner" id="btn-spinner"></div>
+    <span id="btn-icon">💾</span>
+  </button>
+</div>
+
+<!-- ── Success overlay ── -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">💪</div>
+  <div class="success-title">تم التسجيل!</div>
+  <div class="success-sub" id="success-msg">بياناتك اتحفظت في الشيت<br>استمر — كل يوم بيقربك أكتر</div>
+  <button style="margin-top:24px;padding:12px 32px;border:none;border-radius:12px;background:var(--gold);color:#0D0D0D;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer" onclick="closeSuccess()">تمام 🙌</button>
+</div>
+
+<!-- ── Settings modal ── -->
+<div class="modal-overlay" id="settings-modal" onclick="closeSettings(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">⚙️ إعدادات الاتصال</div>
+    <div class="modal-sub">ربط الموقع بـ Google Sheet</div>
+    <div class="modal-hint">
+      <b style="color:var(--text)">خطوات الربط:</b><br>
+      1. افتح Google Sheet فاضي<br>
+      2. Extensions → Apps Script<br>
+      3. انسخ الكود من الأسفل وحطه فيه<br>
+      4. Deploy → New Deployment → Web App<br>
+      5. انسخ الـ URL وحطه هنا
+    </div>
+    <input type="url" class="modal-input" id="sheet-url-input"
+      placeholder="https://script.google.com/macros/s/..."
+      dir="ltr">
+    <button class="modal-save" onclick="saveSettings()">حفظ</button>
+    <div style="margin-top:16px;font-size:12px;color:var(--muted)">
+      لو مش عارف تعمل الربط — الموقع هيحفظ البيانات محلياً في المتصفح
+    </div>
+  </div>
+</div>
+
+<!-- ── Error toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  attend: null,
+  workout: null,
+  duration: 90,
+  meals: { 'm-breakfast':false,'m-snack1':false,'m-lunch':false,'m-pre':false,'m-post':false,'m-dinner':false },
+  water: 0,
+  sleep: null,
+  weight: null,
+  gymNote: ''
+};
+
+// ── Date ──────────────────────────────────────────────────────────────────
+const DAYS_AR = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const now = new Date();
+const dateStr = `${DAYS_AR[now.getDay()]}، ${now.getDate()} ${MONTHS_AR[now.getMonth()]} ${now.getFullYear()}`;
+document.getElementById('hero-date').textContent = dateStr;
+
+// ── Init water drops ──────────────────────────────────────────────────────
+const waterBar = document.getElementById('water-bar');
+for(let i=0;i<6;i++){
+  const d = document.createElement('div');
+  d.className='water-drop';
+  d.innerHTML='💧';
+  d.onclick = ()=>setWater(i+1);
+  waterBar.appendChild(d);
+}
+
+// ── Init sleep chips ──────────────────────────────────────────────────────
+const sleepRow = document.getElementById('sleep-row');
+[5,6,7,8,9,10].forEach(h=>{
+  const c=document.createElement('button');
+  c.className='sleep-chip';
+  c.textContent=h+' س';
+  c.onclick=()=>setSleep(h,c);
+  sleepRow.appendChild(c);
+});
+
+// ── Sections ──────────────────────────────────────────────────────────────
+function toggleSection(id){
+  const el=document.getElementById(id);
+  el.classList.toggle('open');
+  el.classList.toggle('active',el.classList.contains('open'));
+}
+
+// ── Attendance ────────────────────────────────────────────────────────────
+function setAttend(val){
+  state.attend=val;
+  ['done','swim','rest','miss'].forEach(v=>{
+    const btn=document.getElementById('att-'+v);
+    btn.className='attend-btn';
+    if(v===val) btn.classList.add('sel-'+val);
+  });
+  const showDetails = val==='done'||val==='swim';
+  document.getElementById('gym-details').style.display=showDetails?'block':'none';
+  updateBadge('badge-gym',val?'✓':'');
+}
+
+// ── Workout type ──────────────────────────────────────────────────────────
+function selectWorkout(el,name){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.workout=name;
+}
+
+// ── Duration ──────────────────────────────────────────────────────────────
+function changeDuration(delta){
+  state.duration = Math.max(10,Math.min(180,state.duration+delta));
+  document.getElementById('duration-val').textContent=state.duration;
+}
+
+// ── Meals ─────────────────────────────────────────────────────────────────
+function toggleMeal(id){
+  state.meals[id] = !state.meals[id];
+  const el=document.getElementById(id);
+  const chk=document.getElementById('mc-'+id.replace('m-',''));
+  el.classList.toggle('on',state.meals[id]);
+  chk.textContent=state.meals[id]?'✓':'○';
+  const count=Object.values(state.meals).filter(Boolean).length;
+  updateBadge('badge-food',count?count+'/6':'');
+}
+
+// ── Water ─────────────────────────────────────────────────────────────────
+function setWater(cups){
+  state.water = cups===state.water?0:cups;
+  document.querySelectorAll('.water-drop').forEach((d,i)=>{
+    d.classList.toggle('filled',i<state.water);
+  });
+  const liters=(state.water*0.5).toFixed(1);
+  document.getElementById('water-label').textContent=
+    state.water?`${liters} لتر 💧`:'اضغط على الكوبايات — كل كوبة = 0.5 لتر';
+  updateBadge('badge-vitals',state.water?liters+'ل':'');
+}
+
+// ── Sleep ─────────────────────────────────────────────────────────────────
+function setSleep(h,el){
+  state.sleep=state.sleep===h?null:h;
+  document.querySelectorAll('.sleep-chip').forEach(c=>c.classList.remove('on'));
+  if(state.sleep) el.classList.add('on');
+  if(state.water||state.sleep)
+    updateBadge('badge-vitals',(state.water?(state.water*0.5).toFixed(1)+'ل ':'')+( state.sleep?state.sleep+'س':''));
+}
+
+// ── Weight ────────────────────────────────────────────────────────────────
+function onWeightInput(){
+  const val=parseFloat(document.getElementById('weight-input').value);
+  state.weight=isNaN(val)?null:val;
+  updateBadge('badge-weight',state.weight?state.weight+'كجم':'');
+}
+
+// ── Badge helper ─────────────────────────────────────────────────────────
+function updateBadge(id,text){
+  const b=document.getElementById(id);
+  b.textContent=text; b.classList.toggle('show',!!text);
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────
+function openSettings(){
+  document.getElementById('settings-modal').classList.add('show');
+  const saved=localStorage.getItem('sheets_url')||'';
+  document.getElementById('sheet-url-input').value=saved;
+}
+function closeSettings(e){
+  if(e.target===document.getElementById('settings-modal'))
+    document.getElementById('settings-modal').classList.remove('show');
+}
+function saveSettings(){
+  const url=document.getElementById('sheet-url-input').value.trim();
+  if(url) localStorage.setItem('sheets_url',url);
+  document.getElementById('settings-modal').classList.remove('show');
+  showToast(url?'تم الحفظ ✓':'تم الحذف');
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+async function submitData(){
+  const btn=document.getElementById('submit-btn');
+  const spinner=document.getElementById('btn-spinner');
+  const btnText=document.getElementById('btn-text');
+  const btnIcon=document.getElementById('btn-icon');
+
+  // Build payload
+  const payload={
+    date: `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`,
+    dayName: DAYS_AR[now.getDay()],
+    attend: state.attend||'',
+    workout: state.workout||'',
+    duration: state.attend==='done'||state.attend==='swim'?state.duration:'',
+    gymNote: document.getElementById('gym-note').value||'',
+    breakfast: state.meals['m-breakfast']?'✓':'',
+    snack1: state.meals['m-snack1']?'✓':'',
+    lunch: state.meals['m-lunch']?'✓':'',
+    preworkout: state.meals['m-pre']?'✓':'',
+    postworkout: state.meals['m-post']?'✓':'',
+    dinner: state.meals['m-dinner']?'✓':'',
+    mealsCount: Object.values(state.meals).filter(Boolean).length||'',
+    water: state.water?(state.water*0.5).toFixed(1):'',
+    sleep: state.sleep||'',
+    weight: state.weight||''
+  };
+
+  // Loading state
+  btn.disabled=true;
+  spinner.style.display='block';
+  btnText.textContent='جاري الحفظ...';
+  btnIcon.textContent='';
+
+  const sheetsUrl=localStorage.getItem('sheets_url');
+
+  if(sheetsUrl){
+    try{
+      await fetch(sheetsUrl,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      showSuccess(true);
+    }catch(e){
+      // Save locally as fallback
+      saveLocally(payload);
+      showSuccess(false,'تم الحفظ محلياً (تأكد من الاتصال)');
+    }
+  } else {
+    saveLocally(payload);
+    showSuccess(false,'تم الحفظ محلياً — أضف رابط الشيت من الإعدادات');
+  }
+
+  btn.disabled=false;
+  spinner.style.display='none';
+  btnText.textContent='سجّل اليوم';
+  btnIcon.textContent='💾';
+}
+
+function saveLocally(payload){
+  const logs=JSON.parse(localStorage.getItem('fitness_logs')||'[]');
+  logs.push(payload);
+  localStorage.setItem('fitness_logs',JSON.stringify(logs));
+}
+
+function showSuccess(synced,customMsg){
+  const overlay=document.getElementById('success-overlay');
+  const msg=document.getElementById('success-msg');
+  msg.innerHTML=synced
+    ?'بياناتك اتحفظت في الشيت ✅<br>استمر — كل يوم بيقربك أكتر 🔥'
+    :(customMsg||'تم الحفظ محلياً')+`<br><br><span style="font-size:12px;color:var(--muted)">عدد التسجيلات المحفوظة: ${JSON.parse(localStorage.getItem('fitness_logs')||'[]').length}</span>`;
+  overlay.classList.add('show');
+}
+
+function closeSuccess(){
+  document.getElementById('success-overlay').classList.remove('show');
+  // Reset meals visually
+  Object.keys(state.meals).forEach(k=>{
+    state.meals[k]=false;
+    document.getElementById(k).classList.remove('on');
+    document.getElementById('mc-'+k.replace('m-','')).textContent='○';
+  });
+  updateBadge('badge-food','');
+}
+
+// ── Load saved URL ────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  if(!localStorage.getItem('sheets_url')){
+    setTimeout(()=>showToast('افتح الإعدادات ⚙️ وحط رابط الشيت',4000),1000);
+  }
+});
+</script>
+
+</body>
+</html>
